@@ -1,0 +1,11 @@
+{
+    "list" : [
+        {
+            "id" : 1,
+            "firstName" : "Dwight",
+            "lastName" : "Schrute",
+            "salary" : 45000,
+            "department" : "Sales"
+        }
+    ]
+}
