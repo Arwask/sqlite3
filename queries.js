@@ -1,5 +1,6 @@
 'use strict';
 
+// const serialize = require('serialize-javascript');
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('company.sqlite', (err) => { //checks if it exists, if not it creates new but if exists it just uses the existing one
     if(err) 
@@ -12,10 +13,14 @@ db.run('DROP TABLE IF EXISTS employees', () => {
 });
 
 const createEmployeesTable = () => {
+   
     db.run('CREATE TABLE IF NOT EXISTS employees (id INT, first TEXT, last TEXT, salary INT, department TEXT)', () => {
         console.log("created");
-        populateEmployees();
-        getFilteredData();
+        populateEmployees()
+        .then( (data) => {
+            getFilteredData();
+        });
+        
     });
 };
 
@@ -24,19 +29,27 @@ const createEmployeesTable = () => {
 // db.run('INSERT INTO employees VALUES (2, "Fredrica", "Jonathon", 75000, "CEO")');
 
 const populateEmployees = () => {
-    const { list } = require('./employees.json');
-
+    const { list } = require('./employees.json')
+    return new Promise( (resolve, reject) => {
         list.forEach( (employee) => {
-            db.run(`INSERT INTO employees VALUES(
-                ${employee.id},
-                "${employee.firstName}",
-                "${employee.lastName}",
-                ${employee.salary},
-                "${employee.dept}")`, () => {
-                    console.log("Done");
-                    getFilteredData();
-                })
-        });
+            db.serialize( () => {
+                
+                db.run(`INSERT INTO employees VALUES(
+                     ${employee.id},
+                     "${employee.firstName}",
+                     "${employee.lastName}",
+                     ${employee.salary},
+                     "${employee.dept}")`, (err, data) => {
+                         if(err) console.log(err.toString());
+                         resolve(data);
+                         console.log("Done");
+                     })
+            
+                    })
+                });
+    })
+            // getFilteredData();
+            
     console.log("get filtered data");
 };
 
@@ -66,7 +79,7 @@ const getFilteredData = () => {
     db.each(`select * from employees`, (err, {id, first, last, deaprtment, salary}) => {
         if(err) 
             console.log(err.toString());
-        console.log(`${id} ${first} ${last}`)
+        // console.log(`${id} ${first} ${last}`)
     })
 
 
